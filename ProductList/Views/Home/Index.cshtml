@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<table>
+    <tr>
+        <td>
+            <img src="~/Images/Image1.jpg" alt="My Photo" width="200" />
+        </td>
+        <td>
+            <strong>Name:</strong> Tristan<br />
+            <strong>Surname:</strong> Bosman<br />
+            <strong>Student Number:</strong> u23614286
+        </td>
+    </tr>
+</table>
+
+<h2>Steps Taken to Update the Project</h2>
+
+<h4>1. Adapted ProductController.cs</h4>
+<ul>
+    <!-- Add steps here as you complete them -->
+</ul>
+
+<h4>2. Adapted Product/Index.cshtml</h4>
+<ul>
+    <!-- Add steps here as you complete them -->
+</ul>
+
+<h4>3. Adapted Models</h4>
+<ul>
+    <li><strong>Category.cs:</strong> (No changes yet)</li>
+    <li><strong>Product.cs:</strong> (No changes yet)</li>
+    <li><strong>ProductRepository.cs:</strong> (No changes yet)</li>
+    <li><strong>ProductViewModel.cs:</strong> (No changes yet)</li>
+</ul>
+
+<h4>4. Created New Model - Supplier.cs</h4>
+<ul>
+    <!-- Add steps here once Supplier.cs is added -->
+</ul>
+<div style="max-height: 450px; overflow-y: auto;">
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Add item to list
+            $("#addItemButton").click(function () {
+                var itemText = $("#newItemText").val();
+                var newItem = "<li>" + itemText + "</li>";
+                $("#myList ul").append(newItem);
+            });
+
+            // Remove item from list
+            $("#removeItemButton").click(function () {
+                $("#myList ul li:last-child").remove();
+            });
+        });
+    </script>
+</div>

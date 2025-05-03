@@ -1,0 +1,354 @@
+﻿@model ProductList.Models.ProductViewModel
+
+@{
+    ViewBag.Title = "Product List";
+}
+<style>
+    /* Hide scrollbar until height is exceeded */
+    div[style*="max-height"]::-webkit-scrollbar {
+        width: 0.5em;
+    }
+
+    div[style*="max-height"]::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 0.5em;
+    }
+
+    div[style*="max-height"]::-webkit-scrollbar-track {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+<br />
+<div class="row mt-2 mb-4">
+    <!-- Column 1: Dropdowns -->
+    <div class="col-md-6">
+        <div class="mb-2">
+            <label for="supplierDropdown" class="form-label">Supplier:</label>
+            @Html.DropDownListFor(model => model.SelectedSupplierId,
+                new SelectList(Model.Suppliers, "Id", "Name"),
+                "Select a supplier",
+                new { @id = "supplierDropdown", @class = "form-select" })
+        </div>
+
+        <div class="mb-2">
+            <label for="categoryDropdown" class="form-label">Category:</label>
+            @Html.DropDownListFor(model => model.SelectedCategoryId,
+                new SelectList(Model.Categories, "Id", "Name"),
+                "Select a category",
+                new { @id = "categoryDropdown", @class = "form-select", @disabled = "disabled" })
+        </div>
+
+        <div class="mb-2">
+            <label for="productDropdown" class="form-label">Product:</label>
+            @Html.DropDownListFor(model => model.SelectedProductId,
+                new SelectList(Model.Products, "Id", "Name"),
+                "Select a product",
+                new { @id = "productDropdown", @class = "form-select", @disabled = "disabled" })
+        </div>
+    </div>
+
+    <!-- Column 2: Textboxes and Button -->
+    <div class="col-md-6">
+        <div class="mb-2">
+            <label for="productNameTextbox" class="form-label">Value:</label>
+            <input type="number" class="form-control" id="productNameTextbox" placeholder="Only numbers are allowed" disabled />
+        </div>
+
+        <div class="mb-2">
+            <label for="productSerialTextbox" class="form-label">Serial:</label>
+            <input type="number" class="form-control" id="productSerialTextbox" maxlength="10" required placeholder="10 digits required" disabled />
+        </div>
+
+        <div class="mb-2 d-grid">
+            <button type="button" class="btn btn-primary" id="addProductButton" disabled>Add Product</button>
+        </div>
+    </div>
+</div>
+
+<div style="height: 300px; overflow-y: scroll;">
+    <table class="table table-condensed" id="productTable">
+        <thead style="position: sticky; top: 0; background-color: lightgrey;">
+            <tr>
+                <th style="width: 5%;">ID</th>
+                <th style="width: 20%;">Category</th>
+                <th style="width: 20%;">Product</th>
+                <th style="width: 20%;">Value</th>
+                <th style="width: 20%;">Timestamp</th>
+                <th style="width: 15%;">ACTION</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+
+        // ----------------------------------------------------------------------
+        // CONTROL TEXTBOX INPUT
+        // ----------------------------------------------------------------------
+
+        var input = document.getElementById("productNameTextbox");
+        var warning = document.querySelector("#productNameTextbox + small");
+
+        if (input && warning) {
+            input.addEventListener("input", function () {
+                var value = this.value.replace(/\D/g, '');
+                if (value.length > 6) {
+                    value = value.slice(0, 6);
+                }
+                this.value = value;
+
+                if (value.length !== this.value.length) {
+                    warning.style.display = "block";
+                } else {
+                    warning.style.display = "none";
+                }
+            });
+        }
+
+        // ----------------------------------------------------------------------
+        // POPULATE DROPDOWNS
+        // ----------------------------------------------------------------------
+
+        $(function DropDownPopulater() {
+
+        $("#productNameTextbox").prop("disabled", true);
+
+        $("#supplierDropdown").change(function () {
+            var supplierId = $(this).val();
+
+            if (supplierId) {
+                $.get('@Url.Action("GetCategoriesBySupplier", "Product")', { supplierId: supplierId })
+                    .done(function (data) {
+                        var categoryNames = data.split(";")[0].split(",");
+                        var categoryIds = data.split(";")[1].split(",");
+                        var categories = [];
+                        for (var i = 0; i < categoryNames.length; i++) {
+                            categories.push({ id: categoryIds[i], name: categoryNames[i] });
+                        }
+
+                        var categoryDropdown = $("#categoryDropdown");
+                        categoryDropdown.empty();
+                        categoryDropdown.append($("<option></option>").val("").text("Select a category"));
+                        $.each(categories, function (i, category) {
+                            categoryDropdown.append($("<option></option>").val(category.id).text(category.name));
+                        });
+
+                        categoryDropdown.prop("disabled", false);
+                        $("#productDropdown").empty().append($("<option></option>").val("").text("Select a product")).prop("disabled", true);
+                        $("#productNameTextbox, #productSerialTextbox, #addProductButton").prop("disabled", true);
+                    });
+            } else {
+                $("#categoryDropdown").empty().append($("<option></option>").val("").text("Select a category")).prop("disabled", true);
+                $("#productDropdown").empty().append($("<option></option>").val("").text("Select a product")).prop("disabled", true);
+                $("#productNameTextbox, #productSerialTextbox, #addProductButton").prop("disabled", true);
+            }
+        });
+
+
+
+        $("#categoryDropdown").change(function () {
+            var categoryId = $(this).val();
+            if (categoryId) {
+                $.get('@Url.Action("GetProductsByCategory", "Product")', { categoryId: categoryId })
+                    .done(function (data) {
+                        var productNames = data.split(";")[0].split(",");
+                        var productIds = data.split(";")[1].split(",");
+                        var products = [];
+                        for (var i = 0; i < productNames.length; i++) {
+                            products.push({ id: productIds[i], name: productNames[i] });
+                        }
+
+                        var productDropdown = $("#productDropdown");
+                        productDropdown.empty();
+                        productDropdown.append($("<option></option>").val("").text("Select a product"));
+                        $.each(products, function (i, product) {
+                            productDropdown.append($("<option></option>").val(product.id).text(product.name));
+                        });
+                        productDropdown.prop("disabled", false);
+                    });
+            } else {
+                $("#productDropdown").empty().append($("<option></option>").val("").text("Select a product")).prop("disabled", true);
+                $("#productNameTextbox").prop("disabled", true);
+            }
+        });
+
+        $("#productDropdown").change(function () {
+            $("#addProductSection").show();
+            if ($("#categoryDropdown").val() && $("#productDropdown").val()) {
+                $("#productNameTextbox").prop("disabled", false);
+            } else {
+                $("#productNameTextbox").prop("disabled", true);
+            }
+
+        });
+
+        $("#productNameTextbox").change(function () {
+            var ProductValue = $(this).val();
+            if (ProductValue) {
+                $("#productSerialTextbox").prop("disabled", false);
+            } else {
+                $("#productSerialTextbox").prop("disabled", true);
+                $("#addProductButton").prop("disabled", true);
+            }
+        });
+
+        $("#productSerialTextbox").on("input", function () {
+            var serialValue = $(this).val();
+
+            // Strip non-digit characters just in case
+            serialValue = serialValue.replace(/\D/g, "");
+
+            // Force back into field in case of non-digit
+            $(this).val(serialValue);
+
+            if (serialValue.length === 10) {
+                $("#addProductButton").prop("disabled", false);
+            } else {
+                $("#addProductButton").prop("disabled", true);
+            }
+        });
+
+        // ----------------------------------------------------------------------
+        // ADD BUTTON
+        // ----------------------------------------------------------------------
+
+            $("#addProductButton").click(function () {
+                var productId = $("#productDropdown").val();
+                var productName = $("#productNameTextbox").val();
+                if (productId && productName) {
+                    $.get('@Url.Action("AddProduct", "Product")', { productId: productId, productName: productName })
+                        .done(function (data) {
+                        if (data === "OK") {
+                            var productTable = $("#productTable tbody");
+                            var newRow = $("<tr></tr>");
+
+                            newRow.append($("<td></td>").text(productId));
+
+                        // NEW TABLE DropDown Targets
+                        // ----------------------------------------------------------------------
+
+                            newRow.append($("<td></td>").append(
+                                $("<select></select>").addClass("form-select").prop("disabled", true)
+                                    .append($("<option></option>").val($("#categoryDropdown").val()).text($("#categoryDropdown option:selected").text()))));
+
+                            newRow.append($("<td></td>").append(
+                                $("<select></select>").addClass("form-select").prop("disabled", true)
+                                    .append($("<option></option>").val(productId).text($("#productDropdown option:selected").text()))));
+
+                        // ----------------------------------------------------------------------
+
+                        // ----------------------------------------------------------------------
+
+                            newRow.append($("<td></td>").append($("<input>").prop("type", "text").addClass("form-control").prop("disabled", true).val(productName)));
+                            newRow.append($("<td></td>").text(new Date().toLocaleString()));
+                            newRow.append($("<td></td>").append(
+                                $("<button></button>").text("EDIT").addClass("btn btn-success btn-sm").click(function () {
+                                }).css({ "width": "50%", "padding-right": "10px" }),
+                                $("<button></button>").text("DELETE").addClass("btn btn-danger btn-sm").click(function () {
+                                    $(this).closest("tr").remove();
+                                }).css({ "width": "50%" }))
+                            );
+
+                            productTable.append(newRow);
+
+                            $("#productNameTextbox").val("");
+
+                            $("#productNameTextbox").prop("disabled", true);
+
+                            $("#productDropdown").val("");
+
+                            $("#productDropdown").prop("disabled", true);
+
+                            $("#categoryDropdown").val("");
+
+                            $("#categoryDropdown").prop("disabled", true);
+
+                            $("#productSerialTextbox").val("");
+
+                            $("#productSerialTextbox").prop("disabled", true);
+
+                            $("#supplierDropdown").val("");
+
+                            $("#supplierDropdown").prop("disabled", false);
+
+                            $("#addProductButton").prop("disabled", true);
+                            // ----------------------------------------------------------------------
+                            // RAW DATA DEMO CODE ---- Not part of the project!!!! ----
+                            // ----------------------------------------------------------------------
+                            var rawData = $("#rawData tbody");
+                            var newRow = $("<tr></tr>");
+                            newRow.append($("<td></td>").text(JSON.stringify({ productId: productId, productName: productName })));
+                            rawData.append(newRow);
+                            // ----------------------------------------------------------------------
+                            // ----------------------------------------------------------------------
+                        } else {
+                            alert("Failed to add product.");
+                        }
+                    });
+                }
+
+        // ----------------------------------------------------------------------
+        // EDIT BUTTON
+        // ----------------------------------------------------------------------
+
+            $(document).on("click", ".btn-success", function () {
+
+                // HTML Load controls disabled.
+                // -------------------------------------------
+                $("#categoryDropdown").prop("disabled", true);
+                $("#productDropdown").prop("disabled", true);
+                $("#productNameTextbox").prop("disabled", true);
+
+                $(".btn-success").prop("disabled", true);
+
+                var currentRow = $(this).closest("tr");
+                currentRow.find(":input").not(":disabled").prop("disabled", true);
+                currentRow.find(":input").prop("disabled", false);
+                currentRow.find(".btn-danger").prop("disabled", true);
+
+                // Disable dropdowns in the row
+                currentRow.find(".form-select").prop("disabled", true);
+
+                currentRow.find(":input[type=text]").prop("disabled", false);
+                currentRow.find(":input[type=text]").each(function () {
+                    $(this).on("input", function () {
+                        var value = this.value.replace(/\D/g, '');
+                        if (value.length > 6) {
+                            value = value.slice(0, 6);
+                        }
+                        this.value = value;
+                    });
+                });
+
+        // ----------------------------------------------------------------------
+        // SAVE BUTTON
+        // ----------------------------------------------------------------------
+                $(this).text("SAVE").removeClass("btn-success").addClass("btn-primary");
+                $(".btn-danger").prop("disabled", true);
+                $("form :input:not(.row-edit :input)").not(":disabled").addClass("disabled").prop("disabled", true);
+                $(document).one("click", ".btn-primary", function () {
+                    currentRow.find(":input").prop("disabled", true);
+                    currentRow.find(".btn-danger").prop("disabled", false);
+                    $(this).text("EDIT").removeClass("btn-primary").addClass("btn-success");
+                    currentRow.find(":input[type=text]").prop("disabled", true);
+                    currentRow.find(":input[type=text]").off("input");
+                    $(".btn-success").not(this).prop("disabled", false);
+                    $(this).prop("disabled", false);
+
+                    // HTML Load controls disabled.
+                    // -------------------------------------------
+                    $(".btn-danger").prop("disabled", false);
+                    $("#categoryDropdown").prop("disabled", false)
+
+                    $("form :input:not(.row-edit :input)").not(":disabled").removeClass("disabled").prop("disabled", false);
+
+                });
+            });
+        });
+    });
+    </script>
+
+}
