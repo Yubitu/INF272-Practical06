@@ -19,7 +19,7 @@ namespace ProductList.Controllers
             }
 
         public ActionResult GetProductsByCategory(int categoryId)
-            {
+        {
             var products = ProductRepository.GetProducts()
                 .Where(p => p.CategoryId == categoryId)
                 .Select(p => new { p.Id, p.Name });
@@ -32,11 +32,8 @@ namespace ProductList.Controllers
                 productIds.Add(product.Id);
                 }
 
-            return Content(
-                string.Format("{0};{1}", string.Join(",", productNames), string.Join(",", productIds)),
-                "text/plain"
-            );
-            }
+            return Json(new { productNames, productIds }, JsonRequestBehavior.AllowGet);
+        }   
 
         public ActionResult AddProduct(int productId, string productName)
             {
@@ -60,11 +57,7 @@ namespace ProductList.Controllers
                 categoryIds.Add(category.Id);
             }
 
-            return Content(
-                string.Format("{0};{1}", string.Join(",", categoryNames), string.Join(",", categoryIds)),
-                "text/plain"
-            );
+            return Json(new { categoryNames, categoryIds }, JsonRequestBehavior.AllowGet);
         }
-
     }
 }

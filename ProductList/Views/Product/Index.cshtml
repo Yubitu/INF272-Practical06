@@ -75,8 +75,8 @@
                 <th style="width: 14%;">Product</th>
                 <th style="width: 10%;">Value</th>
                 <th style="width: 14%;">Serial</th>   <!-- New Serial column -->
-                <th style="width: 14%;">Timestamp</th>
-                <th style="width: 10%;">ACTION</th>
+                <th style="width: 10%;">Timestamp</th>
+                <th style="width: 14%; padding-left: 35px;">ACTION</th>
             </tr>
         </thead>
         <tbody>
@@ -122,10 +122,10 @@
             $("#productSerialTextbox").val("");
 
             if (supplierId) {
-                $.get('@Url.Action("GetCategoriesBySupplier", "Product")', { supplierId: supplierId })
+                $.getJSON('@Url.Action("GetCategoriesBySupplier", "Product")', { supplierId: supplierId })
                     .done(function (data) {
-                        var categoryNames = data.split(";")[0].split(",");
-                        var categoryIds = data.split(";")[1].split(",");
+                        var categoryNames = data.categoryNames;
+                        var categoryIds = data.categoryIds;
                         var categories = [];
                         for (var i = 0; i < categoryNames.length; i++) {
                             categories.push({ id: categoryIds[i], name: categoryNames[i] });
@@ -157,10 +157,10 @@
             $("#productSerialTextbox").val("");
 
             if (categoryId) {
-                $.get('@Url.Action("GetProductsByCategory", "Product")', { categoryId: categoryId })
+                $.getJSON('@Url.Action("GetProductsByCategory", "Product")', { categoryId: categoryId })
                     .done(function (data) {
-                        var productNames = data.split(";")[0].split(",");
-                        var productIds = data.split(";")[1].split(",");
+                        var productNames = data.productNames;
+                        var productIds = data.productIds;
                         var products = [];
                         for (var i = 0; i < productNames.length; i++) {
                             products.push({ id: productIds[i], name: productNames[i] });
@@ -294,7 +294,7 @@
                             $("#productSerialTextbox").val("");
 
                             $("#productSerialTextbox").prop("disabled", true);
-                             
+
                             $("#supplierDropdown").val("");
 
                             $("#supplierDropdown").prop("disabled", false);
@@ -338,7 +338,7 @@
                 currentRow.find(".form-select").prop("disabled", true);
 
                 currentRow.find(".name-textbox").prop("disabled", false);
-                currentRow.find(".serial-textbox").prop("disabled", false); 
+                currentRow.find(".serial-textbox").prop("disabled", false);
 
                 currentRow.find(".name-textbox").each(function () {
                     $(this).on("input", function () {
@@ -375,15 +375,17 @@
                     currentRow.find(":input").prop("disabled", true);
                     currentRow.find(".btn-danger").prop("disabled", false);
                     $(this).text("EDIT").removeClass("btn-primary").addClass("btn-success");
-                    currentRow.find(":input[type=text]").prop("disabled", true);
-                    currentRow.find(":input[type=text]").off("input");
+                    currentRow.find(".name-textbox").prop("disabled", true);
+                    currentRow.find(".name-textbox").off("input");
+                    currentRow.find(".serial-textbox").prop("disabled", true);
+                    currentRow.find(".serial-textbox").off("input");
                     $(".btn-success").not(this).prop("disabled", false);
                     $(this).prop("disabled", false);
 
                     // HTML Load controls disabled.
                     // -------------------------------------------
                     $(".btn-danger").prop("disabled", false);
-                    $("#categoryDropdown").prop("disabled", false)
+                    $("#supplierDropdown").prop("disabled", false)
 
                     $("form :input:not(.row-edit :input)").not(":disabled").removeClass("disabled").prop("disabled", false);
 
