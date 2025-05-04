@@ -60,7 +60,7 @@
         </div>
 
         <div class="mb-2 d-grid">
-            <button type="button" class="btn btn-primary" id="addProductButton" disabled>Add Product</button>
+            <button type="button" class="btn btn-primary" id="addProductButton" style="width: 51.5%; margin-top: 10px;" disabled>Add Product</button>
         </div>
     </div>
 </div>
@@ -70,11 +70,13 @@
         <thead style="position: sticky; top: 0; background-color: lightgrey;">
             <tr>
                 <th style="width: 5%;">ID</th>
-                <th style="width: 20%;">Category</th>
-                <th style="width: 20%;">Product</th>
-                <th style="width: 20%;">Value</th>
-                <th style="width: 20%;">Timestamp</th>
-                <th style="width: 15%;">ACTION</th>
+                <th style="width: 14%;">Supplier</th> <!-- New Supplier column -->
+                <th style="width: 14%;">Category</th>
+                <th style="width: 14%;">Product</th>
+                <th style="width: 10%;">Value</th>
+                <th style="width: 14%;">Serial</th>   <!-- New Serial column -->
+                <th style="width: 14%;">Timestamp</th>
+                <th style="width: 10%;">ACTION</th>
             </tr>
         </thead>
         <tbody>
@@ -92,21 +94,19 @@
         var input = document.getElementById("productNameTextbox");
         var warning = document.querySelector("#productNameTextbox + small");
 
-        if (input && warning) {
-            input.addEventListener("input", function () {
-                var value = this.value.replace(/\D/g, '');
-                if (value.length > 6) {
-                    value = value.slice(0, 6);
-                }
-                this.value = value;
+        input.addEventListener("input", function () {
+            var value = this.value.replace(/\D/g, '');
+            if (value.length > 6) {
+                value = value.slice(0, 6);
+            }
+            this.value = value;
 
-                if (value.length !== this.value.length) {
-                    warning.style.display = "block";
-                } else {
-                    warning.style.display = "none";
-                }
-            });
-        }
+            if (value.length !== this.value.length) {
+                warning.style.display = "block";
+            } else {
+                warning.style.display = "none";
+            }
+        });
 
         // ----------------------------------------------------------------------
         // POPULATE DROPDOWNS
@@ -118,6 +118,8 @@
 
         $("#supplierDropdown").change(function () {
             var supplierId = $(this).val();
+            $("#productNameTextbox").val("");
+            $("#productSerialTextbox").val("");
 
             if (supplierId) {
                 $.get('@Url.Action("GetCategoriesBySupplier", "Product")', { supplierId: supplierId })
@@ -151,6 +153,9 @@
 
         $("#categoryDropdown").change(function () {
             var categoryId = $(this).val();
+            $("#productNameTextbox").val("");
+            $("#productSerialTextbox").val("");
+
             if (categoryId) {
                 $.get('@Url.Action("GetProductsByCategory", "Product")', { categoryId: categoryId })
                     .done(function (data) {
@@ -168,20 +173,27 @@
                             productDropdown.append($("<option></option>").val(product.id).text(product.name));
                         });
                         productDropdown.prop("disabled", false);
+                        $("#productSerialTextbox").prop("disabled", true);
+                        $("#productNameTextbox").prop("disabled", true);
                     });
             } else {
                 $("#productDropdown").empty().append($("<option></option>").val("").text("Select a product")).prop("disabled", true);
                 $("#productNameTextbox").prop("disabled", true);
+                $("#productSerialTextbox").prop("disabled", true);
             }
         });
 
-        $("#productDropdown").change(function () {
-            $("#addProductSection").show();
-            if ($("#categoryDropdown").val() && $("#productDropdown").val()) {
-                $("#productNameTextbox").prop("disabled", false);
-            } else {
-                $("#productNameTextbox").prop("disabled", true);
-            }
+                $("#productDropdown").change(function () {
+                $("#productNameTextbox").val("");
+                $("#productSerialTextbox").val("");
+                $("#addProductSection").show();
+                if ($("#categoryDropdown").val() && $("#productDropdown").val()) {
+                    $("#productNameTextbox").prop("disabled", false);
+                    $("#productSerialTextbox").prop("disabled", true);
+                } else {
+                    $("#productNameTextbox").prop("disabled", true);
+                    $("#productSerialTextbox").prop("disabled", true);
+                }
 
         });
 
@@ -195,7 +207,8 @@
             }
         });
 
-        $("#productSerialTextbox").on("input", function () {
+            $("#productSerialTextbox").on("input", function () {
+
             var serialValue = $(this).val();
 
             // Strip non-digit characters just in case
@@ -204,12 +217,17 @@
             // Force back into field in case of non-digit
             $(this).val(serialValue);
 
-            if (serialValue.length === 10) {
-                $("#addProductButton").prop("disabled", false);
-            } else {
-                $("#addProductButton").prop("disabled", true);
-            }
-        });
+                if (serialValue.length > 10) {
+                    serialValue = serialValue.slice(0, 10); // Limit to 10 digits
+                }
+                this.value = serialValue;
+
+                if (serialValue.length === 10) {
+                    $("#addProductButton").prop("disabled", false);
+                } else {
+                    $("#addProductButton").prop("disabled", true);
+                }
+            });
 
         // ----------------------------------------------------------------------
         // ADD BUTTON
@@ -218,6 +236,7 @@
             $("#addProductButton").click(function () {
                 var productId = $("#productDropdown").val();
                 var productName = $("#productNameTextbox").val();
+                var serialNumber = $("#productSerialTextbox").val();
                 if (productId && productName) {
                     $.get('@Url.Action("AddProduct", "Product")', { productId: productId, productName: productName })
                         .done(function (data) {
@@ -229,6 +248,9 @@
 
                         // NEW TABLE DropDown Targets
                         // ----------------------------------------------------------------------
+                            newRow.append($("<td></td>").append(
+                                $("<select></select>").addClass("form-select").prop("disabled", true)
+                                    .append($("<option></option>").val($("#supplierDropdown").val()).text($("#supplierDropdown option:selected").text()))));
 
                             newRow.append($("<td></td>").append(
                                 $("<select></select>").addClass("form-select").prop("disabled", true)
@@ -238,11 +260,14 @@
                                 $("<select></select>").addClass("form-select").prop("disabled", true)
                                     .append($("<option></option>").val(productId).text($("#productDropdown option:selected").text()))));
 
-                        // ----------------------------------------------------------------------
 
                         // ----------------------------------------------------------------------
 
-                            newRow.append($("<td></td>").append($("<input>").prop("type", "text").addClass("form-control").prop("disabled", true).val(productName)));
+                        // ----------------------------------------------------------------------
+
+                            newRow.append($("<td></td>").append($("<input>").prop("type", "text").addClass("form-control name-textbox").prop("disabled", true).val(productName)));
+                            newRow.append($("<td></td>").append($("<input>").prop("type", "text").addClass("form-control serial-textbox").prop("disabled", true).val(serialNumber)));
+
                             newRow.append($("<td></td>").text(new Date().toLocaleString()));
                             newRow.append($("<td></td>").append(
                                 $("<button></button>").text("EDIT").addClass("btn btn-success btn-sm").click(function () {
@@ -269,7 +294,7 @@
                             $("#productSerialTextbox").val("");
 
                             $("#productSerialTextbox").prop("disabled", true);
-
+                             
                             $("#supplierDropdown").val("");
 
                             $("#supplierDropdown").prop("disabled", false);
@@ -312,8 +337,10 @@
                 // Disable dropdowns in the row
                 currentRow.find(".form-select").prop("disabled", true);
 
-                currentRow.find(":input[type=text]").prop("disabled", false);
-                currentRow.find(":input[type=text]").each(function () {
+                currentRow.find(".name-textbox").prop("disabled", false);
+                currentRow.find(".serial-textbox").prop("disabled", false); 
+
+                currentRow.find(".name-textbox").each(function () {
                     $(this).on("input", function () {
                         var value = this.value.replace(/\D/g, '');
                         if (value.length > 6) {
@@ -321,6 +348,21 @@
                         }
                         this.value = value;
                     });
+                });
+
+                currentRow.find(".serial-textbox").on("input", function () {
+                    var value = this.value.replace(/\D/g, '');
+                    if (value.length > 10) {
+                        value = value.slice(0, 10); // Limit to 10 digits
+                    }
+                    this.value = value;
+
+                    // Enable or disable the Save button based on serial number length
+                    if (value.length === 10) {
+                        currentRow.find(".btn-primary").prop("disabled", false);
+                    } else {
+                        currentRow.find(".btn-primary").prop("disabled", true);
+                    }
                 });
 
         // ----------------------------------------------------------------------
