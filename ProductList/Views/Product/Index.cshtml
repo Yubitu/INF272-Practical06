@@ -231,7 +231,9 @@
 
         // ----------------------------------------------------------------------
         // ADD BUTTON
-        // ----------------------------------------------------------------------
+            // ----------------------------------------------------------------------
+            //Using a unique_Id for Id column of table (index value)
+            let uniqueId = 0;
 
             $("#addProductButton").click(function () {
                 var productId = $("#productDropdown").val();
@@ -243,8 +245,8 @@
                         if (data === "OK") {
                             var productTable = $("#productTable tbody");
                             var newRow = $("<tr></tr>");
-
-                            newRow.append($("<td></td>").text(productId));
+                            //Append the unique Id
+                            newRow.append($("<td></td>").text(uniqueId));
 
                         // NEW TABLE DropDown Targets
                         // ----------------------------------------------------------------------
@@ -300,6 +302,9 @@
                             $("#supplierDropdown").prop("disabled", false);
 
                             $("#addProductButton").prop("disabled", true);
+
+                            //Increment the Id by one
+                            uniqueId++;
                             // ----------------------------------------------------------------------
                             // RAW DATA DEMO CODE ---- Not part of the project!!!! ----
                             // ----------------------------------------------------------------------
@@ -311,7 +316,7 @@
                             // ----------------------------------------------------------------------
                         } else {
                             alert("Failed to add product.");
-                        }
+                            }
                     });
                 }
 

@@ -1,11 +1,11 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
+<link rel="stylesheet"  href="/Content/styles.css" />
 <table>
     <tr>
         <td>
-            <img src="~/Images/Image1.jpg" alt="My Photo" width="200" />
+            <img src="~/Images/Image1.jpg" alt="My Photo" class="my-pic" width="200" />
         </td>
         <td>
             <strong>Name:</strong> Tristan<br />
@@ -19,27 +19,46 @@
 
 <h4>1. Adapted ProductController.cs</h4>
 <ul>
-    <!-- Add steps here as you complete them -->
+    <li>Added "Suppliers = ProductRepository.GetSuppliers()" to populate the Suppliers property in the ProductViewModel.</li>
+    <li>Replicated the GetProductsByCategory ActionResult in order to create GetCategoriesBySupplier.</li>
+    <li>Adjusted both ActionResults to return JSON instead of a standard ViewResult.</li>
 </ul>
 
 <h4>2. Adapted Product/Index.cshtml</h4>
 <ul>
-    <!-- Add steps here as you complete them -->
+    <li>I worked with the Category dropwdown to adapt a Supplier dropdown. I first started with coding the html control using the category dropdown as reference.</li>
+    <li>In the process of making these changes, I adjusted the Bootstrap utility classes and layout structure to accommodate a two-column layout (one for the dropdowns and one for the textboxes) while also tightening vertical margins.</li>
+    <li>I then used the Jquey of the category dropdown to help guide me through the Jquery for the Supplier dropdown.</li>
+    <li>I added functionality for the productSerialTextbox using the Value textbox(productNameTextbox) as reference. I decided to slice digits that exceed 10 and only allow the add button to enable when 10 digits have been reached.</li>
+    <li>Along with that I also added serial number validation when the edit button is clicked and serial number is changed. The save button won't work unless input is valid.</li>
+    <li>I had to change and add enabling and disabling of the dropdown.props throughout various parts of the script.</li>
+    <li>Along with that I was also persistent on clearing and disabling textboxes & dropdowns when the user changes a previous selection.</li>
+    <li>I adapted both the Supplier dropdown and Category dropdown to get the JSON result returned by the ProductController using it with Jquery; $.getJSON('@Url.Action()'). </li>
+    <li>I had to adjust the cshtml of the table to create space for another two columns, I simply just proportionally reduced the size of every other field then added the Supplier and Serial columns.</li>
+    <li>I added functionality to the add button to account for the new columns and made some small changes to the edit button.</li>
+    <li>A very important task I had to complete for the functionality of the add button was to modify the Jquery of adding new rows to give ids to the form-controls appended to the table.</li>
+    <li>Lastly, I decided to use an incrementing index value for the id column so that each instance can have a unique id displayed with it. The initial code made used the product ids for the column.</li>
+
 </ul>
 
 <h4>3. Adapted Models</h4>
 <ul>
-    <li><strong>Category.cs:</strong> (No changes yet)</li>
-    <li><strong>Product.cs:</strong> (No changes yet)</li>
-    <li><strong>ProductRepository.cs:</strong> (No changes yet)</li>
-    <li><strong>ProductViewModel.cs:</strong> (No changes yet)</li>
+    <li><strong>Category.cs:</strong> Added the public int SupplierId property to the model.</li>
+    <li><strong>Product.cs:</strong> I adapted the Product model in order to see what the Category model was missing and also what steps to take for my Supplier model.</li>
+    <li><strong>ProductRepository.cs:</strong> I adapted the product list to contain 16 products and the category list to contain 9 categories. I then added the static list method for GetSuppliers(). 
+    Lastly, I had to assign Ids of the three different suppliers to categories, and the new categories to new products. I followed a simple pattern of 1 suppliers for every 3 products.</li>
+    <li><strong>ProductViewModel.cs:</strong> I added the four following properties to the model; A supllier list property for Suppliers, a SeleectedSupplierId, and lastly properties for Value & Serial.</li>
 </ul>
 
 <h4>4. Created New Model - Supplier.cs</h4>
 <ul>
-    <!-- Add steps here once Supplier.cs is added -->
+    I adapted the Supplier model from the original Category model. Since the selection of a supplier does not rely on any other selection, it only needs an Id and name for each of the three suppliers.
 </ul>
-<div style="max-height: 450px; overflow-y: auto;">
+
+
+<!--Some useful code from Sir that could come in handy-->
+
+<!--<div style="max-height: 450px; overflow-y: auto;">
     <script type="text/javascript">
         $(document).ready(function () {
             // Add item to list
@@ -55,4 +74,4 @@
             });
         });
     </script>
-</div>
+</div> -->
